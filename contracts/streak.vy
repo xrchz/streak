@@ -50,10 +50,13 @@ def _transfer(_from: address, _to: address, _amount: uint256) -> bool:
     return False
   self.balanceOf[_from] = unsafe_sub(balanceFrom, _amount)
   self.balanceOf[_to] = self.balanceOf[_to] + _amount
-  if self.lastDepositTime[_to] == 0:
+  fromEmptied: bool = 0 < balanceFrom and self.balanceOf[_from] == 0
+  toStarted: bool = 0 < _amount and self.lastDepositTime[_to] == 0
+  if toStarted:
     self.lastDepositTime[_to] = self.lastDepositTime[_from]
-    self._increaseHolders()
-  if 0 < balanceFrom and self.balanceOf[_from] == 0:
+    if not fromEmptied:
+      self._increaseHolders()
+  elif fromEmptied:
     self._decreaseHolders(_from)
   log Transfer(_from, _to, _amount)
   return True
@@ -111,6 +114,7 @@ def _decreaseHolders(who: address):
 
 @external
 def mint(amount: uint256, recipient: address):
+  assert 0 < amount
   assert extcall self.shitCoin.transferFrom(msg.sender, self, amount)
   self.totalSupply += amount
   self.balanceOf[recipient] += amount
