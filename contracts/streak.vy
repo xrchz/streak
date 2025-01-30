@@ -123,10 +123,10 @@ def mint(amount: uint256, recipient: address):
 def kill(target: address):
   assert self.timeToBuy < block.timestamp - self.lastDepositTime[target]
   amount: uint256 = self.balanceOf[target]
+  assert 0 < amount
   self.totalSupply -= amount
   self.balanceOf[target] = 0
-  if 0 < amount:
-    self._decreaseHolders(target)
+  self._decreaseHolders(target)
   log Kill(amount, msg.sender, target)
 
 @external
@@ -134,11 +134,11 @@ def raid():
   assert self.totalHolders == 1
   assert self.lastDepositTime[msg.sender] != 0
   assert self.active
-  amount: uint256 = staticcall self.shitCoin.balanceOf(self)
-  assert extcall self.shitCoin.transfer(msg.sender, amount)
+  reward: uint256 = staticcall self.shitCoin.balanceOf(self)
+  assert extcall self.shitCoin.transfer(msg.sender, reward)
   self.lastDepositTime[msg.sender] = 0
-  reward: uint256 = self.balanceOf[msg.sender]
+  amount: uint256 = self.balanceOf[msg.sender]
+  self.totalSupply -= amount
   self.balanceOf[msg.sender] = 0
   self._decreaseHolders(msg.sender)
-  self.totalSupply -= reward
   log Raid(amount, reward, msg.sender)
