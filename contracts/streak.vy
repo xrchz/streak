@@ -141,7 +141,6 @@ def raid():
   assert self.active
   reward: uint256 = staticcall shitCoin.balanceOf(self)
   assert extcall shitCoin.transfer(msg.sender, reward)
-  self.lastDepositTime[msg.sender] = 0
   amount: uint256 = self.balanceOf[msg.sender]
   self.totalSupply -= amount
   self.balanceOf[msg.sender] = 0
