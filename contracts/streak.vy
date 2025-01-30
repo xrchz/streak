@@ -24,21 +24,22 @@ event Approval:
   _value: uint256
 
 active: public(bool)
-shitCoin: public(ERC20)
-timeToBuy: public(uint256)
+shitCoin: public(immutable(ERC20))
+decimals: public(immutable(uint8))
+timeToBuy: public(immutable(uint256))
 totalHolders: public(uint256)
 lastDepositTime: public(HashMap[address, uint256])
 
 @deploy
 def __init__(coin: address, time: uint256):
-  self.shitCoin = ERC20(coin)
-  self.timeToBuy = time
+  shitCoin = ERC20(coin)
+  decimals = staticcall shitCoin.decimals()
+  timeToBuy = time
 
 # ERC20 functions
 
 name: public(constant(String[64])) = "skid mark: a streak of shit"
 symbol: public(constant(String[8])) = "SKIDMARK"
-decimals: public(constant(uint8)) = 18
 totalSupply: public(uint256)
 balanceOf: public(HashMap[address, uint256])
 allowance: public(HashMap[address, HashMap[address, uint256]])
@@ -115,7 +116,7 @@ def _decreaseHolders(who: address):
 @external
 def mint(amount: uint256, recipient: address):
   assert 0 < amount
-  assert extcall self.shitCoin.transferFrom(msg.sender, self, amount)
+  assert extcall shitCoin.transferFrom(msg.sender, self, amount)
   self.totalSupply += amount
   self.balanceOf[recipient] += amount
   if self.lastDepositTime[recipient] == 0:
@@ -125,7 +126,7 @@ def mint(amount: uint256, recipient: address):
 
 @external
 def kill(target: address):
-  assert self.timeToBuy < block.timestamp - self.lastDepositTime[target]
+  assert timeToBuy < block.timestamp - self.lastDepositTime[target]
   amount: uint256 = self.balanceOf[target]
   assert 0 < amount
   self.totalSupply -= amount
@@ -138,8 +139,8 @@ def raid():
   assert self.totalHolders == 1
   assert self.lastDepositTime[msg.sender] != 0
   assert self.active
-  reward: uint256 = staticcall self.shitCoin.balanceOf(self)
-  assert extcall self.shitCoin.transfer(msg.sender, reward)
+  reward: uint256 = staticcall shitCoin.balanceOf(self)
+  assert extcall shitCoin.transfer(msg.sender, reward)
   self.lastDepositTime[msg.sender] = 0
   amount: uint256 = self.balanceOf[msg.sender]
   self.totalSupply -= amount
