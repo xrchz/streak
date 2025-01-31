@@ -26,14 +26,16 @@ event Approval:
 active: public(bool)
 shitCoin: public(immutable(ERC20))
 decimals: public(immutable(uint8))
+minimumBuy: public(immutable(uint256))
 timeToBuy: public(immutable(uint256))
 totalHolders: public(uint256)
 lastDepositTime: public(HashMap[address, uint256])
 
 @deploy
-def __init__(coin: address, time: uint256):
+def __init__(coin: address, unit: uint256, time: uint256):
   shitCoin = ERC20(coin)
   decimals = staticcall shitCoin.decimals()
+  minimumBuy = unit
   timeToBuy = time
 
 # ERC20 functions
@@ -115,7 +117,7 @@ def _decreaseHolders(who: address):
 
 @external
 def mint(amount: uint256, recipient: address):
-  assert 0 < amount
+  assert minimumBuy <= amount
   assert extcall shitCoin.transferFrom(msg.sender, self, amount)
   self.totalSupply += amount
   self.balanceOf[recipient] += amount
